@@ -1,0 +1,36 @@
+FROM ubuntu:18.04
+MAINTAINER Gourav Mudgal
+
+ARG INSTALLER=pdi-ee-client
+ARG INSTALL_PATH=/opt/pentaho/design-tools
+ARG VERSION=9.2.0.0
+ARG DISTNO=290
+ARG PRODUCT=${INSTALLER}-${VERSION}-${DISTNO}
+ARG PRODUCT_ZIP=${PRODUCT}-dist.zip
+
+RUN echo "Product - ${PRODUCT_ZIP} will be copied and deployed on this docker image.";
+
+WORKDIR /opt/pdi-installer/
+
+# Install openjdk-8-jre, maven, wget, unzip & sudo
+RUN apt-get update && apt-get install openjdk-8-jre maven wget unzip sudo -y
+
+# Create devuser and add to sudoers
+RUN useradd -m -s /bin/bash devuser
+RUN echo 'devuser:pentaho06' | chpasswd
+RUN usermod -aG sudo devuser
+
+# Create pdi-installer directory, Download PDI installer, unzip it and delete zip file
+RUN mkdir -p /opt/pdi-installer \
+    && wget http://build.pentaho.net/hosted/${VERSION}/${DISTNO}/${PRODUCT_ZIP} \
+    && unzip -q ${PRODUCT_ZIP} \
+    && rm -f ${PRODUCT_ZIP}
+
+WORKDIR /home/devuser
+
+# Create pentaho and design-tools folder & install pdi under them
+RUN mkdir -p /home/devuser/pentaho/design-tools \
+    && java -DINSTALL_PATH=${INSTALL_PATH} -DEULA_ACCEPT=true -jar /opt/pdi-installer/${PRODUCT}/installer.jar -options-system \
+    && rm -rf /opt/pdi-installer/${PRODUCT}
+
+CMD["/bin/bash"]

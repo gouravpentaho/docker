@@ -1,0 +1,18 @@
+use jdk8 on ubuntu
+install wget, unzip, sudo
+install psql client
+
+create devuser and set as admin
+
+add devuser to docker group
+
+wget pentaho server
+wget 3 plugins
+unzip all of them
+Install server
+Install plugins
+
+call Entrypoint scripts to run psql commands
+
+psql to postgres container
+run db commands
