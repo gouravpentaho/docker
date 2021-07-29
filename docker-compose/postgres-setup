@@ -8,8 +8,18 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: test_db
+      PGDATA: /pgdata
     ports:
       - "5432:5432"
+    volumes:
+      - /home/devuser/pentaho:/home/devuser/pentaho
+      - /pgdata:/pgdata
+  pentaho:
+    container_name: pentaho_server
+    image: pentaho-9.2
+    restart: always
+    ports:
+      - "8080:8080"
     volumes:
       - /home/devuser/pentaho:/home/devuser/pentaho
   pgadmin:

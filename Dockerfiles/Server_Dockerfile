@@ -31,3 +31,12 @@ call Entrypoint scripts to run psql commands
 
 psql to postgres container
 run db commands
+
+docker exec -it postgres_db psql -U postgres
+
+docker exec -it --user postgres postgres_db /bin/bash
+psql
+\i /home/devuser/pentaho/pentaho-server/data/postgresql/create_quartz_postgresql.sql
+\i /home/devuser/pentaho/pentaho-server/data/postgresql/create_repository_postgresql.sql
+\i /home/devuser/pentaho/pentaho-server/data/postgresql/create_jcr_postgresql.sql
+\i /home/devuser/pentaho/pentaho-server/data/postgresql/pentaho_mart_postgresql.sql

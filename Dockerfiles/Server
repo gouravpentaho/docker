@@ -55,4 +55,4 @@ RUN wget -r -nH --cut-dirs=2 --no-parent --reject="index.html*" http://build.pen
 
 WORKDIR /home/devuser/pentaho/pentaho-server
 
-CMD bash -C 'start-pentaho.sh';'bash'
+CMD bash -C 'printf "\n" | ./start-pentaho.sh';'bash'
