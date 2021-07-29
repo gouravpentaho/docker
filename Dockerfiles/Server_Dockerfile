@@ -11,6 +11,21 @@ wget 3 plugins
 unzip all of them
 Install server
 Install plugins
+wget
+wget http://build.pentaho.net/hosted/9.2.0.0/290/pentaho-server-ee-9.2.0.0-290-dist.zip
+wget http://build.pentaho.net/hosted/9.2.0.0/290/pir-plugin-ee-9.2.0.0-290-dist.zip
+unzip -q pir-plugin-ee-9.2.0.0-290-dist.zip
+wget http://build.pentaho.net/hosted/9.2.0.0/290/paz-plugin-ee-9.2.0.0-290-dist.zip
+unzip -q paz-plugin-ee-9.2.0.0-290-dist.zip
+wget http://build.pentaho.net/hosted/9.2.0.0/290/pdd-plugin-ee-9.2.0.0-290-dist.zip
+unzip -q pdd-plugin-ee-9.2.0.0-290-dist.zip
+
+java -DINSTALL_PATH=/home/devuser/pentaho/ -DEULA_ACCEPT=true -jar /opt/pdi-installer/${PRODUCT}/installer.jar -options-system
+java -DINSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/ -DEULA_ACCEPT=true -jar /home/devuser/pdi-installer/pir-plugin-ee-9.2.0.0-290/installer.jar -options-system
+java -DINSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/ -DEULA_ACCEPT=true -jar /home/devuser/pdi-installer/paz-plugin-ee-9.2.0.0-290/installer.jar -options-system
+java -DINSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/ -DEULA_ACCEPT=true -jar /home/devuser/pdi-installer/pdd-plugin-ee-9.2.0.0-290/installer.jar -options-system
+
+wget -r -nH --cut-dirs=2 --no-parent --reject="index.html*" http://build.pentaho.net/hosted/engops/licenses/
 
 call Entrypoint scripts to run psql commands
 
