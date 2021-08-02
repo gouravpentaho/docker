@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM openjdk:8-jre
 MAINTAINER Gourav Mudgal
 
 ARG INSTALLER=pdi-ee-client
@@ -13,7 +13,7 @@ RUN echo "Product - ${PRODUCT_ZIP} will be copied and deployed on this docker im
 WORKDIR /opt/pdi-installer/
 
 # Install openjdk-8-jre, maven, wget, unzip & sudo
-RUN apt-get update && apt-get install openjdk-8-jre maven wget unzip sudo -y
+RUN apt-get update && apt-get install maven wget unzip sudo -y
 
 # Create devuser and add to sudoers
 RUN useradd -m -s /bin/bash devuser
@@ -33,4 +33,4 @@ RUN mkdir -p /home/devuser/pentaho/design-tools \
     && java -DINSTALL_PATH=${INSTALL_PATH} -DEULA_ACCEPT=true -jar /opt/pdi-installer/${PRODUCT}/installer.jar -options-system \
     && rm -rf /opt/pdi-installer/${PRODUCT}
 
-CMD["/bin/bash"]
+CMD tail -f /dev/null

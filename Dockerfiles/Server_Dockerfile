@@ -1,42 +1,60 @@
-use jdk8 on ubuntu
-install wget, unzip, sudo
-install psql client
+FROM openjdk:8-jre
+MAINTAINER Gourav Mudgal
 
-create devuser and set as admin
+ARG INSTALLER=pdi-ee-client
+ARG INSTALL_PATH=/home/devuser/pentaho/
+ARG PLUGIN_INSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/
 
-add devuser to docker group
+#ARG VERSION=9.2.0.0
+#ARG DISTNO=290
+#ARG PRODUCT=${INSTALLER}-${VERSION}-${DISTNO}
+#ARG PRODUCT_ZIP=${PRODUCT}-dist.zip
 
-wget pentaho server
-wget 3 plugins
-unzip all of them
-Install server
-Install plugins
-wget
-wget http://build.pentaho.net/hosted/9.2.0.0/290/pentaho-server-ee-9.2.0.0-290-dist.zip
-wget http://build.pentaho.net/hosted/9.2.0.0/290/pir-plugin-ee-9.2.0.0-290-dist.zip
-unzip -q pir-plugin-ee-9.2.0.0-290-dist.zip
-wget http://build.pentaho.net/hosted/9.2.0.0/290/paz-plugin-ee-9.2.0.0-290-dist.zip
-unzip -q paz-plugin-ee-9.2.0.0-290-dist.zip
-wget http://build.pentaho.net/hosted/9.2.0.0/290/pdd-plugin-ee-9.2.0.0-290-dist.zip
-unzip -q pdd-plugin-ee-9.2.0.0-290-dist.zip
+# Install wget, unzip & sudo
+RUN apt-get update && apt-get install wget unzip sudo -y
 
-java -DINSTALL_PATH=/home/devuser/pentaho/ -DEULA_ACCEPT=true -jar /opt/pdi-installer/${PRODUCT}/installer.jar -options-system
-java -DINSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/ -DEULA_ACCEPT=true -jar /home/devuser/pdi-installer/pir-plugin-ee-9.2.0.0-290/installer.jar -options-system
-java -DINSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/ -DEULA_ACCEPT=true -jar /home/devuser/pdi-installer/paz-plugin-ee-9.2.0.0-290/installer.jar -options-system
-java -DINSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/ -DEULA_ACCEPT=true -jar /home/devuser/pdi-installer/pdd-plugin-ee-9.2.0.0-290/installer.jar -options-system
+# Create devuser and add to sudoers
+RUN useradd -m -s /bin/bash devuser
+RUN echo 'devuser:pentaho06' | chpasswd
+RUN usermod -aG sudo devuser
 
-wget -r -nH --cut-dirs=2 --no-parent --reject="index.html*" http://build.pentaho.net/hosted/engops/licenses/
+RUN mkdir -p /opt/installer \
+    mkdir -p /home/devuser/pentaho
 
-call Entrypoint scripts to run psql commands
+WORKDIR /opt/installer/
 
-psql to postgres container
-run db commands
+# Download Pentaho server and plug-ins installers, unzip them and delete zip files
+RUN wget http://build.pentaho.net/hosted/9.2.0.0/290/pentaho-server-ee-9.2.0.0-290-dist.zip \
+    && unzip -q pentaho-server-ee-9.2.0.0-290-dist.zip \
+    && rm -f pentaho-server-ee-9.2.0.0-290-dist.zip
 
-docker exec -it postgres_db psql -U postgres
+RUN wget http://build.pentaho.net/hosted/9.2.0.0/290/pir-plugin-ee-9.2.0.0-290-dist.zip \
+    && unzip -q pir-plugin-ee-9.2.0.0-290-dist.zip \
+    && rm -f pir-plugin-ee-9.2.0.0-290-dist.zip
 
-docker exec -it --user postgres postgres_db /bin/bash
-psql
-\i /home/devuser/pentaho/pentaho-server/data/postgresql/create_quartz_postgresql.sql
-\i /home/devuser/pentaho/pentaho-server/data/postgresql/create_repository_postgresql.sql
-\i /home/devuser/pentaho/pentaho-server/data/postgresql/create_jcr_postgresql.sql
-\i /home/devuser/pentaho/pentaho-server/data/postgresql/pentaho_mart_postgresql.sql
+RUN wget http://build.pentaho.net/hosted/9.2.0.0/290/paz-plugin-ee-9.2.0.0-290-dist.zip \
+    && unzip -q paz-plugin-ee-9.2.0.0-290-dist.zip \
+    && rm -f paz-plugin-ee-9.2.0.0-290-dist.zip
+
+RUN wget http://build.pentaho.net/hosted/9.2.0.0/290/pdd-plugin-ee-9.2.0.0-290-dist.zip \
+    && unzip -q pdd-plugin-ee-9.2.0.0-290-dist.zip \
+    && rm -f pdd-plugin-ee-9.2.0.0-290-dist.zip
+
+RUN java -DINSTALL_PATH=${INSTALL_PATH} -DEULA_ACCEPT=true -jar pentaho-server-ee-9.2.0.0-290/installer.jar -options-system \
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pir-plugin-ee-9.2.0.0-290/installer.jar -options-system \
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar paz-plugin-ee-9.2.0.0-290/installer.jar -options-system \
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pdd-plugin-ee-9.2.0.0-290/installer.jar -options-system
+
+RUN rm -rf pentaho-server-ee-9.2.0.0-290 \
+    && rm -rf pir-plugin-ee-9.2.0.0-290 \
+    && rm -rf paz-plugin-ee-9.2.0.0-290 \
+    && rm -rf pdd-plugin-ee-9.2.0.0-290
+
+RUN wget -r -nH --cut-dirs=2 --no-parent --reject="index.html*" http://build.pentaho.net/hosted/engops/licenses/ \
+    && sh /home/devuser/pentaho/license-installer/install_license.sh install -q /opt/installer/licenses/*.lic
+
+RUN cp -r /home/devuser/pentaho/pentaho-server/data/ /home/devuser/
+
+WORKDIR /home/devuser/pentaho/pentaho-server
+
+CMD [ "sh", "./tomcat/bin/catalina.sh", "run" ]
