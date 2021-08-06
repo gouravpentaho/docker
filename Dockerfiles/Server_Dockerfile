@@ -1,14 +1,14 @@
 FROM openjdk:8-jre
 MAINTAINER Gourav Mudgal
 
-ARG INSTALLER=pdi-ee-client
-ARG INSTALL_PATH=/home/devuser/pentaho/
-ARG PLUGIN_INSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/
+#Build time variables, need to be passed using --build-arg
+ARG VERSION
+ARG DISTNO
 
-#ARG VERSION=9.2.0.0
-#ARG DISTNO=290
-#ARG PRODUCT=${INSTALLER}-${VERSION}-${DISTNO}
-#ARG PRODUCT_ZIP=${PRODUCT}-dist.zip
+#Fixed variables
+ARG BUILD_LOCATION=http://build.pentaho.net/hosted
+ARG INSTALLATION_PATH=/home/devuser/pentaho/
+ARG PLUGIN_INSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/
 
 # Install wget, unzip & sudo
 RUN apt-get update && apt-get install wget unzip sudo -y
@@ -24,31 +24,31 @@ RUN mkdir -p /opt/installer \
 WORKDIR /opt/installer/
 
 # Download Pentaho server and plug-ins installers, unzip them and delete zip files
-RUN wget http://build.pentaho.net/hosted/9.2.0.0/290/pentaho-server-ee-9.2.0.0-290-dist.zip \
-    && unzip -q pentaho-server-ee-9.2.0.0-290-dist.zip \
-    && rm -f pentaho-server-ee-9.2.0.0-290-dist.zip
+RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip \
+    && unzip -q pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip \
+    && rm -f pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip
 
-RUN wget http://build.pentaho.net/hosted/9.2.0.0/290/pir-plugin-ee-9.2.0.0-290-dist.zip \
-    && unzip -q pir-plugin-ee-9.2.0.0-290-dist.zip \
-    && rm -f pir-plugin-ee-9.2.0.0-290-dist.zip
+RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && unzip -q pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && rm -f pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip
 
-RUN wget http://build.pentaho.net/hosted/9.2.0.0/290/paz-plugin-ee-9.2.0.0-290-dist.zip \
-    && unzip -q paz-plugin-ee-9.2.0.0-290-dist.zip \
-    && rm -f paz-plugin-ee-9.2.0.0-290-dist.zip
+RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && unzip -q paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && rm -f paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip
 
-RUN wget http://build.pentaho.net/hosted/9.2.0.0/290/pdd-plugin-ee-9.2.0.0-290-dist.zip \
-    && unzip -q pdd-plugin-ee-9.2.0.0-290-dist.zip \
-    && rm -f pdd-plugin-ee-9.2.0.0-290-dist.zip
+RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && unzip -q pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && rm -f pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip
 
-RUN java -DINSTALL_PATH=${INSTALL_PATH} -DEULA_ACCEPT=true -jar pentaho-server-ee-9.2.0.0-290/installer.jar -options-system \
-    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pir-plugin-ee-9.2.0.0-290/installer.jar -options-system \
-    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar paz-plugin-ee-9.2.0.0-290/installer.jar -options-system \
-    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pdd-plugin-ee-9.2.0.0-290/installer.jar -options-system
+RUN java -DINSTALL_PATH=${INSTALLATION_PATH} -DEULA_ACCEPT=true -jar pentaho-server-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pir-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar paz-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pdd-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system
 
-RUN rm -rf pentaho-server-ee-9.2.0.0-290 \
-    && rm -rf pir-plugin-ee-9.2.0.0-290 \
-    && rm -rf paz-plugin-ee-9.2.0.0-290 \
-    && rm -rf pdd-plugin-ee-9.2.0.0-290
+RUN rm -rf pentaho-server-ee-${VERSION}-${DISTNO} \
+    && rm -rf pir-plugin-ee-${VERSION}-${DISTNO} \
+    && rm -rf paz-plugin-ee-${VERSION}-${DISTNO} \
+    && rm -rf pdd-plugin-ee-${VERSION}-${DISTNO}
 
 RUN wget -r -nH --cut-dirs=2 --no-parent --reject="index.html*" http://build.pentaho.net/hosted/engops/licenses/ \
     && sh /home/devuser/pentaho/license-installer/install_license.sh install -q /opt/installer/licenses/*.lic
