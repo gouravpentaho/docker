@@ -14,13 +14,10 @@ services:
       - ./script/:/docker-entrypoint-initdb.d/
   pentaho:
     container_name: pentaho_server
-    image: pentaho-9.2
+    image: pentaho-server
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - VERSION=9.1.0.0
-        - DISTNO=324
     restart: always
     ports:
       - "8080:8080"
