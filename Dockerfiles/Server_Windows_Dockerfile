@@ -1,17 +1,48 @@
 FROM openjdk:8-jre-windowsservercore
 LABEL MAINTAINER Gourav Mudgal
 
-ENV CATALINA_HOME=c:\\pentaho\\server\\pentaho-server\\tomcat
+#Build time variables, need to be passed using --build-arg
+ARG PATH_VERSION="9.2.0.0"
+ARG VERSION="9.2.0.0"
+ARG DISTNO="290"
+
+#Fixed variables
+ARG BUILD_LOCATION="http://build.pentaho.net/hosted"
+ARG PLUGIN_PATH="c:\\pentaho\\server\\pentaho-server\\pentaho-solutions\\system"
+
+ENV CATALINA_HOME="c:\\pentaho\\server\\pentaho-server\\tomcat"
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-RUN wget http://build.pentaho.net/hosted/9.2.0.0/290/pentaho-server-ee-9.2.0.0-290-dist.zip -OutFile c:\pentaho-server-ee-9.2.0.0-290-dist.zip ; \
-    Expand-Archive -Path c:\pentaho-server-ee-9.2.0.0-290-dist.zip -DestinationPath c:\ ; \
-    Remove-Item c:\pentaho-server-ee-9.2.0.0-290-dist.zip -Force;
+RUN wget $env:BUILD_LOCATION/$env:PATH_VERSION/$env:DISTNO/pentaho-server-ee-$env:VERSION-$env:DISTNO-dist.zip -OutFile c:\pentaho-server-ee-$env:VERSION-$env:DISTNO-dist.zip ; \
+    Expand-Archive -Path c:\pentaho-server-ee-$env:VERSION-$env:DISTNO-dist.zip -DestinationPath c:\ ; \
+    Remove-Item c:\pentaho-server-ee-$env:VERSION-$env:DISTNO-dist.zip -Force; \
+    mkdir c:\pentaho\server; \
+    java -DINSTALL_PATH=c:\pentaho\server -DEULA_ACCEPT=true -jar c:\pentaho-server-ee-$env:VERSION-$env:DISTNO\installer.jar -options-system ; \
+    Remove-Item c:\pentaho-server-ee-$env:VERSION-$env:DISTNO -Recurse;
 
-RUN mkdir c:\pentaho\server; \
-    java -DINSTALL_PATH=c:\pentaho\server\ -DEULA_ACCEPT=true -jar c:\pentaho-server-ee-9.2.0.0-290\installer.jar -options-system ; \
-    Remove-Item 'c:\pentaho-server-ee-9.2.0.0-290' -Recurse;
+RUN wget $env:BUILD_LOCATION/$env:PATH_VERSION/$env:DISTNO/pir-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip -OutFile c:\pir-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip ; \
+    Expand-Archive -Path c:\pir-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip -DestinationPath c:\ ; \
+    Remove-Item c:\pir-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip -Force; \
+    java -DINSTALL_PATH=c:\pentaho\server\pentaho-server\pentaho-solutions\system -DEULA_ACCEPT=true -jar c:\pir-plugin-ee-$env:VERSION-$env:DISTNO\installer.jar -options-system ; \
+    Remove-Item c:\pir-plugin-ee-$env:VERSION-$env:DISTNO -Recurse;
+
+RUN wget $env:BUILD_LOCATION/$env:PATH_VERSION/$env:DISTNO/paz-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip -OutFile c:\paz-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip ; \
+    Expand-Archive -Path c:\paz-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip -DestinationPath c:\ ; \
+    Remove-Item c:\paz-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip -Force; \
+    java -DINSTALL_PATH=c:\pentaho\server\pentaho-server\pentaho-solutions\system -DEULA_ACCEPT=true -jar c:\paz-plugin-ee-$env:VERSION-$env:DISTNO\installer.jar -options-system ; \
+    Remove-Item c:\paz-plugin-ee-$env:VERSION-$env:DISTNO -Recurse;
+
+RUN wget $env:BUILD_LOCATION/$env:PATH_VERSION/$env:DISTNO/pdd-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip -OutFile c:\pdd-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip ; \
+    Expand-Archive -Path c:\pdd-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip -DestinationPath c:\ ; \
+    Remove-Item c:\pdd-plugin-ee-$env:VERSION-$env:DISTNO-dist.zip -Force; \
+    java -DINSTALL_PATH=c:\pentaho\server\pentaho-server\pentaho-solutions\system -DEULA_ACCEPT=true -jar c:\pdd-plugin-ee-$env:VERSION-$env:DISTNO\installer.jar -options-system ; \
+    Remove-Item c:\pdd-plugin-ee-$env:VERSION-$env:DISTNO -Recurse;
+
+RUN mkdir c:\licenses
+COPY "licenses\*" "c:\licenses/"
+RUN CD c:\pentaho\server\license-installer; \
+    install_license.bat install -q c:\licenses\*.lic;
 
 WORKDIR c:\\pentaho\\server
 
