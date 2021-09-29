@@ -1,5 +1,14 @@
 version: '3.3'
 services:
+  pentaho:
+    container_name: pentaho_server
+    image: pentaho-server
+    restart: always
+    ports:
+      - "8080:8080"
+    network_mode: "host"
+    volumes:
+      - repository_sql:/home/devuser/pentaho/pentaho-server/data/
   db:
     container_name: postgres_db
     image: postgres:9.5
@@ -12,15 +21,6 @@ services:
     volumes:
       - repository_sql:/data
       - ./script/:/docker-entrypoint-initdb.d/
-  pentaho:
-    container_name: pentaho_server
-    image: pentaho-9.2
-    restart: always
-    ports:
-      - "8080:8080"
-    network_mode: "host"
-    volumes:
-      - repository_sql:/home/devuser/data
 volumes:
   repository_sql:
     driver: local

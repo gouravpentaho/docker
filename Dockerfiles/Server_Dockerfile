@@ -53,8 +53,6 @@ RUN rm -rf pentaho-server-ee-${VERSION}-${DISTNO} \
 RUN wget -r -nH --cut-dirs=2 --no-parent --reject="index.html*" http://build.pentaho.net/hosted/engops/licenses/ \
     && sh /home/devuser/pentaho/license-installer/install_license.sh install -q /opt/installer/licenses/*.lic
 
-RUN cp -r /home/devuser/pentaho/pentaho-server/data/ /home/devuser/
-
 WORKDIR /home/devuser/pentaho/pentaho-server
 
 CMD [ "sh", "./tomcat/bin/catalina.sh", "run" ]
