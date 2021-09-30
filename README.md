@@ -14,6 +14,6 @@ How to setup Pentaho server with Postgres repo on your Docker host VM:
 6. Server will be up and running now.
 7. Under dockerfiles folder run following command to stop the server:
 
-   docker-compose down
+   docker-compose down -v
 
 Note: In step4 you can give desired VERSION (e.g. 8.3.0.0, 9.2.0.0 or 9.3.0.0) & desired DISTNO (build no). 
