@@ -1,0 +1,71 @@
+FROM openjdk:8-jre
+MAINTAINER Gourav Mudgal
+
+#Build time variables, need to be passed using --build-arg
+ARG VERSION
+ARG DISTNO
+
+#Fixed variables
+ARG BUILD_LOCATION=http://build.pentaho.net/hosted
+ARG INSTALLATION_PATH=/home/devuser/pentaho/
+ARG PLUGIN_INSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/
+
+# Install wget, unzip & sudo
+RUN apt-get update && apt-get install wget unzip sudo -y
+
+# Create devuser and add to sudoers
+RUN useradd -m -s /bin/bash devuser
+RUN echo 'devuser:pentaho06' | chpasswd
+RUN usermod -aG sudo devuser
+
+RUN mkdir -p /opt/installer \
+    mkdir -p /home/devuser/pentaho
+
+WORKDIR /opt/installer/
+
+# Download Pentaho server and plug-ins installers, unzip them and delete zip files
+RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip \
+    && unzip -q pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip \
+    && rm -f pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip
+
+RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && unzip -q pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && rm -f pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip
+
+RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && unzip -q paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && rm -f paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip
+
+RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && unzip -q pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+    && rm -f pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip
+
+RUN java -DINSTALL_PATH=${INSTALLATION_PATH} -DEULA_ACCEPT=true -jar pentaho-server-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pir-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar paz-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pdd-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system
+
+RUN rm -rf pentaho-server-ee-${VERSION}-${DISTNO} \
+    && rm -rf pir-plugin-ee-${VERSION}-${DISTNO} \
+    && rm -rf paz-plugin-ee-${VERSION}-${DISTNO} \
+    && rm -rf pdd-plugin-ee-${VERSION}-${DISTNO}
+
+RUN wget -r -nH --cut-dirs=2 --no-parent --reject="index.html*" http://build.pentaho.net/hosted/engops/licenses/ \
+    && sh /home/devuser/pentaho/license-installer/install_license.sh install -q /opt/installer/licenses/*.lic
+
+WORKDIR /home/devuser/pentaho/pentaho-server
+
+RUN rm -f /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/quartz/quartz.properties \
+    rm -f /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/hibernate/hibernate-settings.xml \
+    rm -f /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/jackrabbit/repository.xml \
+    rm -f /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/audit_sql.xml \
+    rm -f /home/devuser/pentaho/pentaho-server/tomcat/webapps/pentaho/META-INF/context.xml
+
+COPY ./mysql/quartz.properties /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/quartz
+COPY ./mysql/hibernate-settings.xml /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/hibernate
+COPY ./mysql/repository.xml /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/jackrabbit
+COPY ./mysql/audit_sql.xml /home/devuser/pentaho/pentaho-server/pentaho-solutions/system
+COPY ./mysql/context.xml /home/devuser/pentaho/pentaho-server/tomcat/webapps/pentaho/META-INF 
+COPY ./mysql/mysql-connector-java-8.0.26.jar /home/devuser/pentaho/pentaho-server/tomcat/lib
+
+CMD [ "sh", "./tomcat/bin/catalina.sh", "run" ]

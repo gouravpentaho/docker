@@ -1,0 +1,26 @@
+version: '3.3'
+services:
+  pentaho:
+    container_name: pentaho_server
+    image: pentaho-server
+    restart: always
+    ports:
+      - "8080:8080"
+    network_mode: "host"
+  db:
+    container_name: mysql
+    image: mysql:8.0.26
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    ports:
+      - "3306:3306"
+    network_mode: "host"
+    volumes:
+      - ./mysql/scripts:/docker-entrypoint-initdb.d/
+      - database:/var/lib/mysql  
+volumes:
+  database:      
+  repository_sql:
+    driver: local
