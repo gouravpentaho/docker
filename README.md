@@ -1,18 +1,21 @@
 # docker
+
 Common place to have created Dockerfiles and other Docker related work.
 
 How to setup Pentaho server with Postgres repo on your Docker host VM:
 1. Create dockerfiles folder under /home/devuser.
-2. Under dockerfiles folder copy docker-compose.yml & Server_Dockerfile files and Script folder.
-3. Under dockerfiles -> Script folder run - chmod +x pgsql.sh command.
-4. Under dockerfile folder run following command:
+2. Under dockerfiles folder copy docker-compose-pgsql.yml & rename it to docker-compose.yml.
+3. Under dockerfiles folder copy server_dockerfile_pgsql file.
+4. Under dockerfiles folder create script folder and copy pgsql.sh file.
+5. Under dockerfiles -> script folder run - chmod +x pgsql.sh command.
+6. Under dockerfile folder run following command:
 
-   docker build -t pentaho-server -f Server_Dockerfile --build-arg VERSION=9.2.0.0 --build-arg DISTNO=290 .
-5. Under dockerfile folder run following command:
+   docker build -t pentaho-server -f server_dockerfile_pgsql --build-arg VERSION=9.2.0.0 --build-arg DISTNO=290 .
+7. Under dockerfile folder run following command:
 
    docker-compose up
-6. Server will be up and running now.
-7. Under dockerfiles folder run following command to stop the server:
+8. Server will be up and running now.
+9. Under dockerfiles folder run following command to stop the server:
 
    docker-compose down -v
 
