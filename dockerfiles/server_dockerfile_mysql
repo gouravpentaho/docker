@@ -10,7 +10,7 @@ ARG DISTNO
 ARG BUILD_LOCATION=http://build.pentaho.net/hosted
 ARG INSTALLATION_PATH=/home/devuser/pentaho/
 ARG PLUGIN_INSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/
-ARG OPSMART_INSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/default-content/
+ARG OPSMART_INSTALL_PATH=/home/devuser/opsmart/
 
 # Install wget, unzip & sudo
 RUN apt-get update && apt-get install wget unzip sudo -y
@@ -21,7 +21,8 @@ RUN echo 'devuser:pentaho06' | chpasswd
 RUN usermod -aG sudo devuser
 
 RUN mkdir -p /opt/installer \
-    mkdir -p /home/devuser/pentaho
+    mkdir -p /home/devuser/pentaho \
+    mkdir -p /home/devuser/opsmart
 
 WORKDIR /opt/installer/
 
@@ -44,14 +45,15 @@ RUN wget ${BUILD_LOCATION}/${PATH_VERSION}/${DISTNO}/pdd-plugin-ee-${VERSION}-${
 
 RUN wget ${BUILD_LOCATION}/${PATH_VERSION}/${DISTNO}/pentaho-operations-mart-${VERSION}-${DISTNO}-dist.zip \
     && unzip -q pentaho-operations-mart-${VERSION}-${DISTNO}-dist.zip \
-    && rm -f pentaho-operations-mart-${VERSION}-${DISTNO}-dist.zip \
-    && rm -f /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/default-content/*
+    && rm -f pentaho-operations-mart-${VERSION}-${DISTNO}-dist.zip
 
 RUN java -DINSTALL_PATH=${INSTALLATION_PATH} -DEULA_ACCEPT=true -jar pentaho-server-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
     && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pir-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
     && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar paz-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
     && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pdd-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
-    && java -DINSTALL_PATH=${OPSMART_INSTALL_PATH} -DEULA_ACCEPT=true -jar pentaho-operations-mart-${VERSION}-${DISTNO}/installer.jar -options-system
+    && java -DINSTALL_PATH=${OPSMART_INSTALL_PATH} -DEULA_ACCEPT=true -jar pentaho-operations-mart-${VERSION}-${DISTNO}/installer.jar -options-system \
+    && cp /home/devuser/opsmart/*mysql* /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/default-content/ \
+    && rm -f /home/devuser/pentaho/pentaho-server/pentaho-solutions/system/default-content/pentaho-operations-mart-etl-${VERSION}-${DISTNO}.zip
 
 RUN rm -rf pentaho-server-ee-${VERSION}-${DISTNO} \
     && rm -rf pir-plugin-ee-${VERSION}-${DISTNO} \

@@ -2,6 +2,7 @@ FROM openjdk:8-jre
 MAINTAINER Gourav Mudgal
 
 #Build time variables, need to be passed using --build-arg
+ARG PATH_VERSION
 ARG VERSION
 ARG DISTNO
 
@@ -9,6 +10,7 @@ ARG DISTNO
 ARG BUILD_LOCATION=http://build.pentaho.net/hosted
 ARG INSTALLATION_PATH=/home/devuser/pentaho/
 ARG PLUGIN_INSTALL_PATH=/home/devuser/pentaho/pentaho-server/pentaho-solutions/system/
+ARG OPSMART_INSTALL_PATH=/home/devuser/opsmart
 
 # Install wget, unzip & sudo
 RUN apt-get update && apt-get install wget unzip sudo -y
@@ -19,31 +21,37 @@ RUN echo 'devuser:pentaho06' | chpasswd
 RUN usermod -aG sudo devuser
 
 RUN mkdir -p /opt/installer \
-    mkdir -p /home/devuser/pentaho
+    mkdir -p /home/devuser/pentaho \
+    mkdir -p /home/devuser/opsmart
 
 WORKDIR /opt/installer/
 
 # Download Pentaho server and plug-ins installers, unzip them and delete zip files
-RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip \
+RUN wget ${BUILD_LOCATION}/${PATH_VERSION}/${DISTNO}/pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip \
     && unzip -q pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip \
     && rm -f pentaho-server-ee-${VERSION}-${DISTNO}-dist.zip
 
-RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+RUN wget ${BUILD_LOCATION}/${PATH_VERSION}/${DISTNO}/pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
     && unzip -q pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
     && rm -f pir-plugin-ee-${VERSION}-${DISTNO}-dist.zip
 
-RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+RUN wget ${BUILD_LOCATION}/${PATH_VERSION}/${DISTNO}/paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
     && unzip -q paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
     && rm -f paz-plugin-ee-${VERSION}-${DISTNO}-dist.zip
 
-RUN wget ${BUILD_LOCATION}/${VERSION}/${DISTNO}/pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
+RUN wget ${BUILD_LOCATION}/${PATH_VERSION}/${DISTNO}/pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
     && unzip -q pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip \
     && rm -f pdd-plugin-ee-${VERSION}-${DISTNO}-dist.zip
+
+RUN wget ${BUILD_LOCATION}/${PATH_VERSION}/${DISTNO}/pentaho-operations-mart-${VERSION}-${DISTNO}-dist.zip \
+    && unzip -q pentaho-operations-mart-${VERSION}-${DISTNO}-dist.zip \
+    && rm -f pentaho-operations-mart-${VERSION}-${DISTNO}-dist.zip
 
 RUN java -DINSTALL_PATH=${INSTALLATION_PATH} -DEULA_ACCEPT=true -jar pentaho-server-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
     && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pir-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
     && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar paz-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
-    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pdd-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system
+    && java -DINSTALL_PATH=${PLUGIN_INSTALL_PATH} -DEULA_ACCEPT=true -jar pdd-plugin-ee-${VERSION}-${DISTNO}/installer.jar -options-system \
+    && java -DINSTALL_PATH=${OPSMART_INSTALL_PATH} -DEULA_ACCEPT=true -jar pentaho-operations-mart-${VERSION}-${DISTNO}/installer.jar -options-system
 
 RUN rm -rf pentaho-server-ee-${VERSION}-${DISTNO} \
     && rm -rf pir-plugin-ee-${VERSION}-${DISTNO} \
